@@ -18,8 +18,8 @@
     </linearGradient>
   </defs>
 
-  <!-- Background: Rounded Square -->
-  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+  <!-- Background: Full square (macOS applies its own icon mask) -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
 
   <!-- 8 Tentacles spreading out from center-bottom -->
   <g stroke="none" fill="url(#tentacle)">

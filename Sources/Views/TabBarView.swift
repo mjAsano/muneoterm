@@ -21,6 +21,46 @@ struct TabBarView: View {
 
             Spacer()
 
+            // 브로드캐스트 입력 토글 버튼
+            Button(action: { appState.showBroadcastInput.toggle() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "terminal")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("입력")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundColor(appState.showBroadcastInput ? .white : .secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(appState.showBroadcastInput
+                              ? Color.accentColor.opacity(0.85)
+                              : Color.gray.opacity(0.12))
+                )
+            }
+            .buttonStyle(.plain)
+            .help("브로드캐스트 입력창 토글 (⌘⇧B)")
+
+            // Claude 일괄실행 버튼
+            Button(action: { appState.launchClaudeAllPanels() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("Claude 8x")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.orange.opacity(0.85))
+                )
+            }
+            .buttonStyle(.plain)
+            .help("모든 패널에서 claude --dangerously-skip-permissions 실행")
+
             Button(action: { appState.addTab() }) {
                 Image(systemName: "plus")
                     .font(.system(size: 11, weight: .medium))

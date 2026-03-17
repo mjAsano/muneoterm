@@ -4,6 +4,7 @@ import SwiftTerm
 protocol SplitContainerDelegate: AnyObject {
     func splitContainerDidChangeRatio(_ nodeID: UUID, ratio: CGFloat)
     func splitContainerDidActivateSession(_ sessionID: UUID)
+    func splitContainerDidRenamePanel(_ sessionID: UUID, name: String)
 }
 
 class SplitContainerNSView: NSView {
@@ -24,10 +25,14 @@ class SplitContainerNSView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(node: SplitNode, activeSessionID: UUID?) {
+    func update(node: SplitNode, activeSessionID: UUID?, panelNames: [UUID: String]) {
         self.currentNode = node
         self.activeSessionID = activeSessionID
         rebuildHierarchy()
+        // Update names without full rebuild
+        for (sessionID, wrapper) in panelWrappers {
+            wrapper.setPanelName(panelNames[sessionID] ?? "")
+        }
     }
 
     // MARK: - Rebuild
@@ -80,6 +85,9 @@ class SplitContainerNSView: NSView {
         wrapper.onActivate = { [weak self] sid in
             self?.delegate?.splitContainerDidActivateSession(sid)
         }
+        wrapper.onRename = { [weak self] sid, name in
+            self?.delegate?.splitContainerDidRenamePanel(sid, name: name)
+        }
 
         if let terminalView = sessionManager.terminalView(for: sessionID) {
             terminalView.removeFromSuperview()
@@ -98,6 +106,15 @@ class SplitContainerNSView: NSView {
         }
     }
 
+    // MARK: - Panel States
+
+    func updatePanelStates(from monitor: OutputMonitor) {
+        for (sessionID, wrapper) in panelWrappers {
+            let state = monitor.state(for: sessionID)
+            wrapper.setPanelState(state)
+        }
+    }
+
     // MARK: - Cleanup
 
     func removePanelWrapper(for sessionID: UUID) {
@@ -110,8 +127,17 @@ class SplitContainerNSView: NSView {
 class TerminalPanelWrapper: NSView {
     let sessionID: UUID
     var onActivate: ((UUID) -> Void)?
+    var onRename: ((UUID, String) -> Void)?
     private var borderLayer: CALayer?
     private var isActivePanel = false
+    private var panelState: PanelState = .idle
+
+    private let titleBar = NSView()
+    private let titleLabel = NSTextField(labelWithString: "")
+    private let titleField = NSTextField()
+    private var terminalTopConstraint: NSLayoutConstraint?
+
+    static let titleBarHeight: CGFloat = 20
 
     init(sessionID: UUID) {
         self.sessionID = sessionID
@@ -120,6 +146,7 @@ class TerminalPanelWrapper: NSView {
         layer?.cornerRadius = 2
 
         setupBorder()
+        setupTitleBar()
     }
 
     required init?(coder: NSCoder) {
@@ -130,20 +157,132 @@ class TerminalPanelWrapper: NSView {
         view.removeFromSuperview()
         addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
+        let topConstraint = view.topAnchor.constraint(equalTo: titleBar.bottomAnchor, constant: 0)
+        terminalTopConstraint = topConstraint
         NSLayoutConstraint.activate([
-            view.topAnchor.constraint(equalTo: topAnchor, constant: 1),
+            topConstraint,
             view.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1),
             view.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1),
             view.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -1),
         ])
     }
 
+    func setPanelName(_ name: String) {
+        titleLabel.stringValue = name
+        titleLabel.isHidden = !titleField.isHidden || name.isEmpty
+    }
+
+    private func setupTitleBar() {
+        titleBar.wantsLayer = true
+        titleBar.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.35).cgColor
+        addSubview(titleBar)
+        titleBar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            titleBar.topAnchor.constraint(equalTo: topAnchor, constant: 1),
+            titleBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 1),
+            titleBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -1),
+            titleBar.heightAnchor.constraint(equalToConstant: TerminalPanelWrapper.titleBarHeight),
+        ])
+
+        // Label (read mode)
+        titleLabel.font = NSFont.systemFont(ofSize: 10, weight: .medium)
+        titleLabel.textColor = NSColor.white.withAlphaComponent(0.6)
+        titleLabel.isEditable = false
+        titleLabel.isBordered = false
+        titleLabel.backgroundColor = .clear
+        titleLabel.isHidden = true
+        titleBar.addSubview(titleLabel)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            titleLabel.centerYAnchor.constraint(equalTo: titleBar.centerYAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: titleBar.leadingAnchor, constant: 6),
+            titleLabel.trailingAnchor.constraint(equalTo: titleBar.trailingAnchor, constant: -6),
+        ])
+
+        // Text field (edit mode)
+        titleField.font = NSFont.systemFont(ofSize: 10, weight: .medium)
+        titleField.textColor = NSColor.white
+        titleField.isBordered = false
+        titleField.backgroundColor = NSColor.white.withAlphaComponent(0.1)
+        titleField.isHidden = true
+        titleField.delegate = self
+        titleField.focusRingType = .none
+        titleBar.addSubview(titleField)
+        titleField.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            titleField.centerYAnchor.constraint(equalTo: titleBar.centerYAnchor),
+            titleField.leadingAnchor.constraint(equalTo: titleBar.leadingAnchor, constant: 4),
+            titleField.trailingAnchor.constraint(equalTo: titleBar.trailingAnchor, constant: -4),
+        ])
+
+        // Double-click gesture
+        let doubleClick = NSClickGestureRecognizer(target: self, action: #selector(titleBarDoubleClicked))
+        doubleClick.numberOfClicksRequired = 2
+        titleBar.addGestureRecognizer(doubleClick)
+    }
+
+    @objc private func titleBarDoubleClicked() {
+        titleField.stringValue = titleLabel.stringValue
+        titleLabel.isHidden = true
+        titleField.isHidden = false
+        titleBar.window?.makeFirstResponder(titleField)
+    }
+
+    private func commitRename() {
+        let newName = titleField.stringValue.trimmingCharacters(in: .whitespaces)
+        titleField.isHidden = true
+        titleLabel.stringValue = newName
+        titleLabel.isHidden = newName.isEmpty
+        onRename?(sessionID, newName)
+    }
+
     func setActive(_ active: Bool) {
         isActivePanel = active
-        borderLayer?.borderColor = active
-            ? NSColor.controlAccentColor.withAlphaComponent(0.6).cgColor
-            : NSColor.separatorColor.withAlphaComponent(0.2).cgColor
-        borderLayer?.borderWidth = active ? 2 : 1
+        updateBorderAppearance()
+    }
+
+    func setPanelState(_ state: PanelState) {
+        let oldState = panelState
+        panelState = state
+        updateBorderAppearance()
+
+        // Pulse animation on completion
+        if oldState == .generating && (state == .completed || state == .error) {
+            animateCompletionPulse(color: state.borderColor)
+        }
+    }
+
+    private func updateBorderAppearance() {
+        if panelState != .idle {
+            // State-based border takes priority
+            borderLayer?.borderColor = panelState.borderColor.cgColor
+            borderLayer?.borderWidth = panelState.borderWidth
+        } else if isActivePanel {
+            borderLayer?.borderColor = NSColor.controlAccentColor.withAlphaComponent(0.6).cgColor
+            borderLayer?.borderWidth = 2
+        } else {
+            borderLayer?.borderColor = NSColor.separatorColor.withAlphaComponent(0.2).cgColor
+            borderLayer?.borderWidth = 1
+        }
+    }
+
+    private func animateCompletionPulse(color: NSColor) {
+        guard let border = borderLayer else { return }
+
+        let pulseAnimation = CABasicAnimation(keyPath: "borderWidth")
+        pulseAnimation.fromValue = 4.0
+        pulseAnimation.toValue = panelState.borderWidth
+        pulseAnimation.duration = 0.5
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+        let colorAnimation = CABasicAnimation(keyPath: "borderColor")
+        colorAnimation.fromValue = color.withAlphaComponent(1.0).cgColor
+        colorAnimation.toValue = color.cgColor
+        colorAnimation.duration = 0.5
+        colorAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+        border.add(pulseAnimation, forKey: "pulseWidth")
+        border.add(colorAnimation, forKey: "pulseColor")
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -163,5 +302,30 @@ class TerminalPanelWrapper: NSView {
     override func layout() {
         super.layout()
         borderLayer?.frame = bounds
+    }
+}
+
+// MARK: - NSTextFieldDelegate
+
+extension TerminalPanelWrapper: NSTextFieldDelegate {
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+        if commandSelector == #selector(NSResponder.insertNewline(_:)) {
+            commitRename()
+            window?.makeFirstResponder(nil)
+            return true
+        }
+        if commandSelector == #selector(NSResponder.cancelOperation(_:)) {
+            titleField.isHidden = true
+            titleLabel.isHidden = titleLabel.stringValue.isEmpty
+            window?.makeFirstResponder(nil)
+            return true
+        }
+        return false
+    }
+
+    func controlTextDidEndEditing(_ obj: Notification) {
+        if !titleField.isHidden {
+            commitRename()
+        }
     }
 }

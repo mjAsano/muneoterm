@@ -17,7 +17,11 @@ struct SplitContainerRepresentable: NSViewRepresentable {
         context.coordinator.appState = appState
 
         guard let tab = appState.activeTab else { return }
-        nsView.update(node: tab.rootNode, activeSessionID: appState.activeSessionID)
+        nsView.update(node: tab.rootNode, activeSessionID: appState.activeSessionID, panelNames: appState.panelNames)
+
+        // Update panel state borders (triggered by monitorStateVersion changes)
+        let _ = appState.monitorStateVersion
+        nsView.updatePanelStates(from: appState.outputMonitor)
     }
 
     class Coordinator: NSObject, SplitContainerDelegate {
@@ -33,6 +37,10 @@ struct SplitContainerRepresentable: NSViewRepresentable {
 
         func splitContainerDidActivateSession(_ sessionID: UUID) {
             appState.activateSession(sessionID)
+        }
+
+        func splitContainerDidRenamePanel(_ sessionID: UUID, name: String) {
+            appState.setPanelName(name, for: sessionID)
         }
     }
 }

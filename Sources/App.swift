@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct HosunTerminalApp: App {
+struct MuneoTermApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState()
 
@@ -56,7 +56,33 @@ struct TerminalCommands: Commands {
             .keyboardShortcut("w", modifiers: .command)
         }
 
+        CommandMenu("Broadcast") {
+            Button("브로드캐스트 입력창 토글") {
+                appState.showBroadcastInput.toggle()
+            }
+            .keyboardShortcut("b", modifiers: [.command, .shift])
+
+            Divider()
+
+            Button("Launch Claude (All Panels)") {
+                appState.launchClaudeAllPanels()
+            }
+            .keyboardShortcut("k", modifiers: [.command, .shift])
+        }
+
+        // MARK: - 패널 직접 포커스 (⌘1~⌘8)
         CommandGroup(after: .toolbar) {
+            Section {
+                ForEach(1...8, id: \.self) { num in
+                    Button("Panel \(num)") {
+                        appState.focusPanel(number: num)
+                    }
+                    .keyboardShortcut(KeyEquivalent(Character("\(num)")), modifiers: .command)
+                }
+            }
+
+            Divider()
+
             Button("Next Tab") {
                 appState.selectNextTab()
             }
@@ -96,8 +122,12 @@ struct TerminalCommands: Commands {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Set activation policy to regular (shows in dock)
         NSApplication.shared.setActivationPolicy(.regular)
+
+        // Set dock icon from asset catalog
+        if let icon = NSImage(named: "AppIcon") {
+            NSApplication.shared.applicationIconImage = icon
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

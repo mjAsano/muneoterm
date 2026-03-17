@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff6b35"/>
+      <stop offset="100%" stop-color="#d63031"/>
+    </linearGradient>
+    <linearGradient id="tentacle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e55039"/>
+      <stop offset="100%" stop-color="#b33939"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a3d0a"/>
+      <stop offset="100%" stop-color="#0d4f0d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background: Rounded Square -->
+  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- 8 Tentacles spreading out from center-bottom -->
+  <g stroke="none" fill="url(#tentacle)">
+    <!-- Left 4 tentacles -->
+    <path d="M512 580 Q380 650 200 720 Q180 740 210 750 Q390 690 512 620Z" opacity="0.9"/>
+    <path d="M512 580 Q350 700 160 810 Q140 835 170 840 Q360 740 512 630Z" opacity="0.85"/>
+    <path d="M512 580 Q420 720 310 880 Q295 905 325 900 Q430 750 512 640Z" opacity="0.8"/>
+    <path d="M512 580 Q480 740 460 900 Q455 930 485 920 Q490 760 512 640Z" opacity="0.75"/>
+
+    <!-- Right 4 tentacles -->
+    <path d="M512 580 Q644 650 824 720 Q844 740 814 750 Q634 690 512 620Z" opacity="0.9"/>
+    <path d="M512 580 Q674 700 864 810 Q884 835 854 840 Q664 740 512 630Z" opacity="0.85"/>
+    <path d="M512 580 Q604 720 714 880 Q729 905 699 900 Q594 750 512 640Z" opacity="0.8"/>
+    <path d="M512 580 Q544 740 564 900 Q569 930 539 920 Q534 760 512 640Z" opacity="0.75"/>
+  </g>
+
+  <!-- Suction cups on tentacles (dots) -->
+  <g fill="#ff9966" opacity="0.5">
+    <circle cx="350" cy="670" r="8"/>
+    <circle cx="280" cy="710" r="7"/>
+    <circle cx="310" cy="760" r="6"/>
+    <circle cx="370" cy="790" r="7"/>
+    <circle cx="430" cy="820" r="6"/>
+    <circle cx="470" cy="860" r="5"/>
+    <circle cx="674" cy="670" r="8"/>
+    <circle cx="744" cy="710" r="7"/>
+    <circle cx="714" cy="760" r="6"/>
+    <circle cx="654" cy="790" r="7"/>
+    <circle cx="594" cy="820" r="6"/>
+    <circle cx="554" cy="860" r="5"/>
+  </g>
+
+  <!-- Octopus Body / Head -->
+  <ellipse cx="512" cy="420" rx="200" ry="210" fill="url(#body)"/>
+
+  <!-- Body highlight -->
+  <ellipse cx="490" cy="360" rx="120" ry="100" fill="#ff7f50" opacity="0.3"/>
+
+  <!-- Terminal Screen on forehead -->
+  <rect x="412" y="310" width="200" height="130" rx="14" ry="14" fill="#0a0a0a" stroke="#333" stroke-width="3"/>
+  <rect x="420" y="318" width="184" height="114" rx="10" ry="10" fill="url(#screen)"/>
+
+  <!-- Terminal prompt lines -->
+  <g fill="#33ff33" font-family="monospace" font-size="22" font-weight="bold">
+    <text x="432" y="355">$ muneo</text>
+    <text x="432" y="382" fill="#22cc22" opacity="0.8">  8 sessions</text>
+    <text x="432" y="409" fill="#33ff33">$ _</text>
+  </g>
+
+  <!-- Eyes -->
+  <g>
+    <!-- Left eye -->
+    <ellipse cx="440" cy="490" rx="36" ry="40" fill="white"/>
+    <ellipse cx="446" cy="494" rx="18" ry="22" fill="#1a1a2e"/>
+    <ellipse cx="450" cy="488" rx="7" ry="8" fill="white"/>
+
+    <!-- Right eye -->
+    <ellipse cx="584" cy="490" rx="36" ry="40" fill="white"/>
+    <ellipse cx="590" cy="494" rx="18" ry="22" fill="#1a1a2e"/>
+    <ellipse cx="594" cy="488" rx="7" ry="8" fill="white"/>
+  </g>
+
+  <!-- Smile -->
+  <path d="M470 540 Q512 570 554 540" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- Small ">_" prompt symbol on cheek -->
+  <text x="600" y="545" fill="#ffcc00" font-family="monospace" font-size="20" font-weight="bold" opacity="0.7">>_</text>
+</svg>

@@ -72,6 +72,24 @@ class TerminalSessionManager {
         sessions[sessionID]?.title ?? "Terminal"
     }
 
+    /// 모든 활성 세션에 명령어를 일괄 전송
+    func broadcastCommand(_ command: String) {
+        let data = Array((command + "\r").utf8)
+        for (_, info) in sessions where info.isRunning {
+            info.terminalView.send(data)
+        }
+    }
+
+    /// 특정 탭의 세션들에만 명령어 일괄 전송
+    func sendCommandToSessions(_ command: String, sessionIDs: [UUID]) {
+        let data = Array((command + "\r").utf8)
+        for sid in sessionIDs {
+            if let info = sessions[sid], info.isRunning {
+                info.terminalView.send(data)
+            }
+        }
+    }
+
     func applyTheme(_ theme: Theme) {
         for (_, info) in sessions {
             applyTheme(theme, to: info.terminalView)

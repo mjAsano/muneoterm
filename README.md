@@ -13,6 +13,14 @@
   다중 탭, 분할 패널, 테마 커스터마이징, 그리고 Claude AI 일괄 실행 기능을 지원합니다.
 </p>
 
+<p align="center">
+  <a href="https://github.com/mjAsano/muneoterm/releases/latest">
+    <img src="https://img.shields.io/github/v/release/mjAsano/muneoterm?style=for-the-badge&label=Download&color=ff6b35" alt="Download Latest Release" />
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/platform-macOS%2014+-blue?style=for-the-badge&logo=apple" alt="macOS 14+" />
+</p>
+
 ---
 
 ## 시스템 요구사항

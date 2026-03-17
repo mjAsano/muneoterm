@@ -21,16 +21,35 @@ jobs:
 
       - name: Build .app bundle
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           APP_NAME="MuneoTerm"
           APP_DIR="${APP_NAME}.app/Contents"
-          mkdir -p "${APP_DIR}/MacOS"
-          mkdir -p "${APP_DIR}/Resources"
+          mkdir -p "${APP_DIR}/MacOS" "${APP_DIR}/Resources"
 
           # Copy binary
           cp .build/release/${APP_NAME} "${APP_DIR}/MacOS/${APP_NAME}"
 
+          # Generate icns from app icon
+          ICON_SRC="Sources/Assets.xcassets/AppIcon.appiconset/icon_1024.png"
+          if [ -f "$ICON_SRC" ]; then
+            ICONSET="/tmp/${APP_NAME}.iconset"
+            mkdir -p "$ICONSET"
+            sips -z 16 16     "$ICON_SRC" --out "${ICONSET}/icon_16x16.png"
+            sips -z 32 32     "$ICON_SRC" --out "${ICONSET}/icon_16x16@2x.png"
+            sips -z 32 32     "$ICON_SRC" --out "${ICONSET}/icon_32x32.png"
+            sips -z 64 64     "$ICON_SRC" --out "${ICONSET}/icon_32x32@2x.png"
+            sips -z 128 128   "$ICON_SRC" --out "${ICONSET}/icon_128x128.png"
+            sips -z 256 256   "$ICON_SRC" --out "${ICONSET}/icon_128x128@2x.png"
+            sips -z 256 256   "$ICON_SRC" --out "${ICONSET}/icon_256x256.png"
+            sips -z 512 512   "$ICON_SRC" --out "${ICONSET}/icon_256x256@2x.png"
+            sips -z 512 512   "$ICON_SRC" --out "${ICONSET}/icon_512x512.png"
+            sips -z 1024 1024 "$ICON_SRC" --out "${ICONSET}/icon_512x512@2x.png"
+            iconutil -c icns "$ICONSET" -o "${APP_DIR}/Resources/AppIcon.icns"
+            rm -rf "$ICONSET"
+          fi
+
           # Create Info.plist
-          cat > "${APP_DIR}/Info.plist" << 'PLIST'
+          cat > "${APP_DIR}/Info.plist" << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -44,11 +63,13 @@ jobs:
             <key>CFBundleVersion</key>
             <string>1</string>
             <key>CFBundleShortVersionString</key>
-            <string>${GITHUB_REF_NAME#v}</string>
+            <string>${VERSION}</string>
             <key>CFBundleExecutable</key>
             <string>MuneoTerm</string>
             <key>CFBundlePackageType</key>
             <string>APPL</string>
+            <key>CFBundleIconFile</key>
+            <string>AppIcon</string>
             <key>LSMinimumSystemVersion</key>
             <string>14.0</string>
             <key>NSHighResolutionCapable</key>
@@ -59,11 +80,17 @@ jobs:
           </plist>
           PLIST
 
-          # Create zip
-          ditto -c -k --sequesterRsrc --keepParent "${APP_NAME}.app" "${APP_NAME}-${GITHUB_REF_NAME}-macOS.zip"
+      - name: Create DMG
+        run: |
+          DMG_DIR="/tmp/MuneoTerm-dmg"
+          mkdir -p "$DMG_DIR"
+          cp -R MuneoTerm.app "$DMG_DIR/"
+          ln -s /Applications "$DMG_DIR/Applications"
+          hdiutil create -volname "MuneoTerm" -srcfolder "$DMG_DIR" -ov -format UDZO "MuneoTerm-${GITHUB_REF_NAME}-macOS.dmg"
+          rm -rf "$DMG_DIR"
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF_NAME}" "MuneoTerm-${GITHUB_REF_NAME}-macOS.zip" --clobber
+          gh release upload "${GITHUB_REF_NAME}" "MuneoTerm-${GITHUB_REF_NAME}-macOS.dmg" --clobber

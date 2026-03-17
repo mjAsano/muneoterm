@@ -14,11 +14,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mjAsano/muneoterm/releases/latest">
-    <img src="https://img.shields.io/github/v/release/mjAsano/muneoterm?style=for-the-badge&label=Download&color=ff6b35" alt="Download Latest Release" />
+  <a href="https://github.com/mjAsano/muneoterm/releases/latest/download/MuneoTerm-v1.0.0-macOS.dmg">
+    <img src="https://img.shields.io/badge/⬇_DMG_다운로드-v1.0.0-ff6b35?style=for-the-badge&logoColor=white" alt="Download DMG" />
   </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/platform-macOS%2014+-blue?style=for-the-badge&logo=apple" alt="macOS 14+" />
+  <img src="https://img.shields.io/badge/macOS_14+-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS 14+" />
+</p>
+
+<p align="center">
+  <sub>DMG를 열고 → MuneoTerm.app을 Applications로 드래그하면 끝!</sub>
 </p>
 
 ---
@@ -26,8 +30,6 @@
 ## 시스템 요구사항
 
 - macOS 14.0 (Sonoma) 이상
-- Swift 5.9+
-- Xcode 15+
 
 ## 빌드 & 실행
 

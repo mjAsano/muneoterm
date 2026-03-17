@@ -80,6 +80,9 @@ jobs:
           </plist>
           PLIST
 
+      - name: Ad-hoc sign app
+        run: codesign --deep --force --sign - MuneoTerm.app
+
       - name: Create DMG
         run: |
           DMG_DIR="/tmp/MuneoTerm-dmg"

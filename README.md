@@ -25,6 +25,13 @@
   <sub>DMG를 열고 → MuneoTerm.app을 Applications로 드래그하면 끝!</sub>
 </p>
 
+> **"손상되었습니다" 오류가 뜨면?**
+> 터미널에서 아래 명령어를 실행하세요:
+> ```bash
+> xattr -cr /Applications/MuneoTerm.app
+> ```
+> 또는 **시스템 설정 → 개인 정보 보호 및 보안** 에서 "그래도 열기" 버튼을 클릭하세요.
+
 ---
 
 ## 시스템 요구사항

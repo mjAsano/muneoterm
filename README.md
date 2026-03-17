@@ -1,6 +1,19 @@
-# MuneoTerm (8hosun Terminal)
+<p align="center">
+  <img src="Resources/MuneoTerm-Logo.svg" width="200" alt="MuneoTerm Logo" />
+</p>
 
-SwiftUI + AppKit 기반 macOS 네이티브 터미널 에뮬레이터. 다중 탭, 분할 패널, 테마 커스터마이징, 그리고 Claude AI 일괄 실행 기능을 지원합니다.
+<h1 align="center">MuneoTerm</h1>
+
+<p align="center">
+  <strong>🐙 클로드 8배력을 위한 선택 🐙</strong>
+</p>
+
+<p align="center">
+  SwiftUI + AppKit 기반 macOS 네이티브 터미널 에뮬레이터.<br/>
+  다중 탭, 분할 패널, 테마 커스터마이징, 그리고 Claude AI 일괄 실행 기능을 지원합니다.
+</p>
+
+---
 
 ## 시스템 요구사항
 
